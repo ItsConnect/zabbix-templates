@@ -1,0 +1,313 @@
+zabbix_export:
+  version: '7.0'
+  template_groups:
+    - uuid: 846977d1dfed4968bc5f8bdb363285bc
+      name: 'Templates/ITS Connect'
+  templates:
+    - uuid: a1b2c3d4e5f6a1b2c3d4e5f6a1b20003
+      template: 'ITS Connect - MySQL 8'
+      name: 'ITS Connect - MySQL 8'
+      description: |
+        Monitors MySQL 8 performance and health using Zabbix Agent 2
+        native MySQL plugin. Requires a dedicated monitoring user:
+          CREATE USER 'zbx_monitor'@'localhost' IDENTIFIED BY '<password>';
+          GRANT PROCESS, REPLICATION CLIENT, SELECT ON *.* TO 'zbx_monitor'@'localhost';
+        Maintained by ITS Connect - https://itsconnect.com.br
+      groups:
+        - name: 'Templates/ITS Connect'
+      items:
+        - uuid: b3000000000000000000000000000001
+          name: 'MySQL: Get global status'
+          type: ZABBIX_ACTIVE
+          key: 'mysql.global.status["{$MYSQL.DSN}","{$MYSQL.USER}","{$MYSQL.PASSWORD}"]'
+          delay: '60'
+          history: '0'
+          trends: '0'
+          value_type: TEXT
+          description: 'Collects all MySQL global status variables as JSON.'
+          tags:
+            - tag: component
+              value: raw
+        - uuid: b3000000000000000000000000000002
+          name: 'MySQL: Get global variables'
+          type: ZABBIX_ACTIVE
+          key: 'mysql.global.variables["{$MYSQL.DSN}","{$MYSQL.USER}","{$MYSQL.PASSWORD}"]'
+          delay: '300'
+          history: '0'
+          trends: '0'
+          value_type: TEXT
+          description: 'Collects all MySQL global variables as JSON.'
+          tags:
+            - tag: component
+              value: raw
+        - uuid: b3000000000000000000000000000003
+          name: 'MySQL: Queries per second'
+          type: DEPENDENT
+          key: 'mysql.queries.rate'
+          delay: '0'
+          history: 7d
+          trends: 365d
+          value_type: FLOAT
+          units: qps
+          description: 'Number of queries executed per second.'
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - '$.Queries'
+            - type: CHANGE_PER_SECOND
+              parameters:
+                - ''
+          master_item:
+            key: 'mysql.global.status["{$MYSQL.DSN}","{$MYSQL.USER}","{$MYSQL.PASSWORD}"]'
+          tags:
+            - tag: component
+              value: mysql
+        - uuid: b3000000000000000000000000000004
+          name: 'MySQL: Slow queries per second'
+          type: DEPENDENT
+          key: 'mysql.slow_queries.rate'
+          delay: '0'
+          history: 7d
+          trends: 365d
+          value_type: FLOAT
+          units: qps
+          description: 'Number of slow queries per second.'
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - '$.Slow_queries'
+            - type: CHANGE_PER_SECOND
+              parameters:
+                - ''
+          master_item:
+            key: 'mysql.global.status["{$MYSQL.DSN}","{$MYSQL.USER}","{$MYSQL.PASSWORD}"]'
+          tags:
+            - tag: component
+              value: mysql
+        - uuid: b3000000000000000000000000000005
+          name: 'MySQL: Current connections'
+          type: DEPENDENT
+          key: 'mysql.threads_connected'
+          delay: '0'
+          history: 7d
+          trends: 365d
+          value_type: UNSIGNED
+          description: 'Number of currently open connections.'
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - '$.Threads_connected'
+          master_item:
+            key: 'mysql.global.status["{$MYSQL.DSN}","{$MYSQL.USER}","{$MYSQL.PASSWORD}"]'
+          tags:
+            - tag: component
+              value: mysql
+        - uuid: b3000000000000000000000000000006
+          name: 'MySQL: Max connections'
+          type: DEPENDENT
+          key: 'mysql.max_connections'
+          delay: '0'
+          history: 7d
+          trends: 365d
+          value_type: UNSIGNED
+          description: 'Maximum permitted number of simultaneous connections.'
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - '$.max_connections'
+          master_item:
+            key: 'mysql.global.variables["{$MYSQL.DSN}","{$MYSQL.USER}","{$MYSQL.PASSWORD}"]'
+          tags:
+            - tag: component
+              value: mysql
+        - uuid: b3000000000000000000000000000007
+          name: 'MySQL: Connection utilization'
+          type: CALCULATED
+          key: 'mysql.connections.pused'
+          delay: '60'
+          history: 7d
+          trends: 365d
+          value_type: FLOAT
+          units: '%'
+          params: '100*last(//mysql.threads_connected)/last(//mysql.max_connections)'
+          description: 'Percentage of max_connections currently in use.'
+          tags:
+            - tag: component
+              value: mysql
+        - uuid: b3000000000000000000000000000008
+          name: 'MySQL: InnoDB buffer pool read requests'
+          type: DEPENDENT
+          key: 'mysql.innodb_buffer_pool.read_requests'
+          delay: '0'
+          history: 7d
+          trends: 365d
+          value_type: FLOAT
+          description: 'InnoDB buffer pool read requests per second.'
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - '$.Innodb_buffer_pool_read_requests'
+            - type: CHANGE_PER_SECOND
+              parameters:
+                - ''
+          master_item:
+            key: 'mysql.global.status["{$MYSQL.DSN}","{$MYSQL.USER}","{$MYSQL.PASSWORD}"]'
+          tags:
+            - tag: component
+              value: mysql
+        - uuid: b3000000000000000000000000000009
+          name: 'MySQL: InnoDB buffer pool size'
+          type: DEPENDENT
+          key: 'mysql.innodb_buffer_pool_size'
+          delay: '0'
+          history: 7d
+          trends: 365d
+          value_type: UNSIGNED
+          units: B
+          description: 'Size of the InnoDB buffer pool in bytes.'
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - '$.innodb_buffer_pool_size'
+          master_item:
+            key: 'mysql.global.variables["{$MYSQL.DSN}","{$MYSQL.USER}","{$MYSQL.PASSWORD}"]'
+          tags:
+            - tag: component
+              value: mysql
+        - uuid: b300000000000000000000000000000a
+          name: 'MySQL: Replication seconds behind master'
+          type: ZABBIX_ACTIVE
+          key: 'mysql.replication.seconds_behind_master["{$MYSQL.DSN}","{$MYSQL.USER}","{$MYSQL.PASSWORD}"]'
+          delay: '60'
+          history: 7d
+          trends: 365d
+          value_type: UNSIGNED
+          units: s
+          description: 'Number of seconds the replica is behind the source.'
+          tags:
+            - tag: component
+              value: replication
+        - uuid: b300000000000000000000000000000b
+          name: 'MySQL: Replication IO running'
+          type: ZABBIX_ACTIVE
+          key: 'mysql.replication.io_running["{$MYSQL.DSN}","{$MYSQL.USER}","{$MYSQL.PASSWORD}"]'
+          delay: '60'
+          history: 7d
+          trends: '0'
+          value_type: CHAR
+          description: 'Whether the replication I/O thread is running.'
+          tags:
+            - tag: component
+              value: replication
+        - uuid: b300000000000000000000000000000c
+          name: 'MySQL: Replication SQL running'
+          type: ZABBIX_ACTIVE
+          key: 'mysql.replication.sql_running["{$MYSQL.DSN}","{$MYSQL.USER}","{$MYSQL.PASSWORD}"]'
+          delay: '60'
+          history: 7d
+          trends: '0'
+          value_type: CHAR
+          description: 'Whether the replication SQL thread is running.'
+          tags:
+            - tag: component
+              value: replication
+        - uuid: b300000000000000000000000000000d
+          name: 'MySQL: Aborted connections per second'
+          type: DEPENDENT
+          key: 'mysql.aborted_connects.rate'
+          delay: '0'
+          history: 7d
+          trends: 365d
+          value_type: FLOAT
+          description: 'Rate of failed connection attempts.'
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - '$.Aborted_connects'
+            - type: CHANGE_PER_SECOND
+              parameters:
+                - ''
+          master_item:
+            key: 'mysql.global.status["{$MYSQL.DSN}","{$MYSQL.USER}","{$MYSQL.PASSWORD}"]'
+          tags:
+            - tag: component
+              value: mysql
+        - uuid: b300000000000000000000000000000e
+          name: 'MySQL: Uptime'
+          type: DEPENDENT
+          key: 'mysql.uptime'
+          delay: '0'
+          history: 7d
+          trends: 365d
+          value_type: UNSIGNED
+          units: uptime
+          description: 'MySQL server uptime in seconds.'
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - '$.Uptime'
+          master_item:
+            key: 'mysql.global.status["{$MYSQL.DSN}","{$MYSQL.USER}","{$MYSQL.PASSWORD}"]'
+          tags:
+            - tag: component
+              value: mysql
+      triggers:
+        - uuid: c3000000000000000000000000000001
+          expression: 'last(/ITS Connect - MySQL 8/mysql.connections.pused)>80'
+          name: 'MySQL: Connection usage exceeds 80% ({ITEM.VALUE}%)'
+          priority: HIGH
+          description: 'More than 80% of max_connections are in use.'
+          tags:
+            - tag: scope
+              value: capacity
+        - uuid: c3000000000000000000000000000002
+          expression: 'min(/ITS Connect - MySQL 8/mysql.slow_queries.rate,5m)>1'
+          name: 'MySQL: Slow queries spike (>{ITEM.VALUE} qps)'
+          priority: AVERAGE
+          description: 'Slow query rate has exceeded 1 per second for the last 5 minutes.'
+          tags:
+            - tag: scope
+              value: performance
+        - uuid: c3000000000000000000000000000003
+          expression: 'last(/ITS Connect - MySQL 8/mysql.replication.io_running["{$MYSQL.DSN}","{$MYSQL.USER}","{$MYSQL.PASSWORD}"])<>"Yes" or last(/ITS Connect - MySQL 8/mysql.replication.sql_running["{$MYSQL.DSN}","{$MYSQL.USER}","{$MYSQL.PASSWORD}"])<>"Yes"'
+          name: 'MySQL: Replication is broken'
+          priority: DISASTER
+          description: 'Either the I/O or SQL replication thread has stopped.'
+          tags:
+            - tag: scope
+              value: availability
+        - uuid: c3000000000000000000000000000004
+          expression: 'last(/ITS Connect - MySQL 8/mysql.replication.seconds_behind_master["{$MYSQL.DSN}","{$MYSQL.USER}","{$MYSQL.PASSWORD}"])>300'
+          name: 'MySQL: Replication lag exceeds 5 minutes ({ITEM.VALUE}s)'
+          priority: HIGH
+          description: 'The replica is more than 300 seconds behind the source.'
+          dependencies:
+            - name: 'MySQL: Replication is broken'
+              expression: 'last(/ITS Connect - MySQL 8/mysql.replication.io_running["{$MYSQL.DSN}","{$MYSQL.USER}","{$MYSQL.PASSWORD}"])<>"Yes" or last(/ITS Connect - MySQL 8/mysql.replication.sql_running["{$MYSQL.DSN}","{$MYSQL.USER}","{$MYSQL.PASSWORD}"])<>"Yes"'
+          tags:
+            - tag: scope
+              value: performance
+        - uuid: c3000000000000000000000000000005
+          expression: 'last(/ITS Connect - MySQL 8/mysql.uptime)<600'
+          name: 'MySQL: Service restarted (uptime < 10m)'
+          priority: WARNING
+          description: 'MySQL has been restarted recently.'
+          manual_close: 'YES'
+          tags:
+            - tag: scope
+              value: availability
+      macros:
+        - macro: '{$MYSQL.DSN}'
+          value: 'tcp://localhost:3306'
+          description: 'MySQL connection DSN.'
+        - macro: '{$MYSQL.USER}'
+          value: 'zbx_monitor'
+          description: 'MySQL monitoring user.'
+        - macro: '{$MYSQL.PASSWORD}'
+          value: ''
+          description: 'MySQL monitoring user password. Override on host level.'
+      tags:
+        - tag: class
+          value: database
+        - tag: target
+          value: mysql

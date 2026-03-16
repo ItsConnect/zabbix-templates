@@ -1,0 +1,241 @@
+zabbix_export:
+  version: '7.0'
+  template_groups:
+    - uuid: 846977d1dfed4968bc5f8bdb363285bc
+      name: 'Templates/ITS Connect'
+  templates:
+    - uuid: a1b2c3d4e5f6a1b2c3d4e5f6a1b20005
+      template: 'ITS Connect - SSL Certificates'
+      name: 'ITS Connect - SSL Certificates'
+      description: |
+        Monitors SSL/TLS certificate validity by performing periodic
+        TLS handshakes. Uses Zabbix Agent 2 web.certificate.get key.
+        Set {$CERT.DOMAIN} macro on the host level.
+        Maintained by ITS Connect - https://itsconnect.com.br
+      groups:
+        - name: 'Templates/ITS Connect'
+      items:
+        - uuid: b5000000000000000000000000000001
+          name: 'SSL: Get certificate [{$CERT.DOMAIN}]'
+          type: ZABBIX_ACTIVE
+          key: 'web.certificate.get[{$CERT.DOMAIN},{$CERT.PORT}]'
+          delay: '3600'
+          history: '0'
+          trends: '0'
+          value_type: TEXT
+          description: 'Retrieves full certificate information as JSON.'
+          tags:
+            - tag: component
+              value: raw
+        - uuid: b5000000000000000000000000000002
+          name: 'SSL: Days until expiry [{$CERT.DOMAIN}]'
+          type: DEPENDENT
+          key: 'cert.expiry_days'
+          delay: '0'
+          history: 90d
+          trends: 365d
+          value_type: FLOAT
+          units: days
+          description: 'Number of days remaining until the certificate expires.'
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - '$.result[0].not_after'
+            - type: JAVASCRIPT
+              parameters:
+                - 'var expiry = new Date(value); var now = new Date(); return Math.floor((expiry - now) / (1000 * 60 * 60 * 24));'
+          master_item:
+            key: 'web.certificate.get[{$CERT.DOMAIN},{$CERT.PORT}]'
+          tags:
+            - tag: component
+              value: ssl
+        - uuid: b5000000000000000000000000000003
+          name: 'SSL: Issuer [{$CERT.DOMAIN}]'
+          type: DEPENDENT
+          key: 'cert.issuer'
+          delay: '0'
+          history: 90d
+          trends: '0'
+          value_type: CHAR
+          description: 'Issuer (CA) of the SSL certificate.'
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - '$.result[0].issuer'
+          master_item:
+            key: 'web.certificate.get[{$CERT.DOMAIN},{$CERT.PORT}]'
+          tags:
+            - tag: component
+              value: ssl
+        - uuid: b5000000000000000000000000000004
+          name: 'SSL: Subject [{$CERT.DOMAIN}]'
+          type: DEPENDENT
+          key: 'cert.subject'
+          delay: '0'
+          history: 90d
+          trends: '0'
+          value_type: CHAR
+          description: 'Subject (CN) of the SSL certificate.'
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - '$.result[0].subject'
+          master_item:
+            key: 'web.certificate.get[{$CERT.DOMAIN},{$CERT.PORT}]'
+          tags:
+            - tag: component
+              value: ssl
+        - uuid: b5000000000000000000000000000005
+          name: 'SSL: Valid [{$CERT.DOMAIN}]'
+          type: DEPENDENT
+          key: 'cert.is_valid'
+          delay: '0'
+          history: 90d
+          trends: 365d
+          value_type: UNSIGNED
+          description: 'Whether the certificate is currently valid (1) or not (0).'
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - '$.result[0].x509.version'
+            - type: JAVASCRIPT
+              parameters:
+                - 'return value ? 1 : 0;'
+          valuemap:
+            name: 'Certificate validity'
+          master_item:
+            key: 'web.certificate.get[{$CERT.DOMAIN},{$CERT.PORT}]'
+          tags:
+            - tag: component
+              value: ssl
+        - uuid: b5000000000000000000000000000006
+          name: 'SSL: Serial number [{$CERT.DOMAIN}]'
+          type: DEPENDENT
+          key: 'cert.serial'
+          delay: '0'
+          history: 90d
+          trends: '0'
+          value_type: CHAR
+          description: 'Serial number of the SSL certificate.'
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - '$.result[0].serial_number'
+          master_item:
+            key: 'web.certificate.get[{$CERT.DOMAIN},{$CERT.PORT}]'
+          tags:
+            - tag: component
+              value: ssl
+        - uuid: b5000000000000000000000000000007
+          name: 'SSL: Not before [{$CERT.DOMAIN}]'
+          type: DEPENDENT
+          key: 'cert.not_before'
+          delay: '0'
+          history: 90d
+          trends: '0'
+          value_type: CHAR
+          description: 'Start date of the certificate validity period.'
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - '$.result[0].not_before'
+          master_item:
+            key: 'web.certificate.get[{$CERT.DOMAIN},{$CERT.PORT}]'
+          tags:
+            - tag: component
+              value: ssl
+        - uuid: b5000000000000000000000000000008
+          name: 'SSL: Not after [{$CERT.DOMAIN}]'
+          type: DEPENDENT
+          key: 'cert.not_after'
+          delay: '0'
+          history: 90d
+          trends: '0'
+          value_type: CHAR
+          description: 'End date of the certificate validity period.'
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - '$.result[0].not_after'
+          master_item:
+            key: 'web.certificate.get[{$CERT.DOMAIN},{$CERT.PORT}]'
+          tags:
+            - tag: component
+              value: ssl
+        - uuid: b5000000000000000000000000000009
+          name: 'SSL: SHA-256 fingerprint [{$CERT.DOMAIN}]'
+          type: DEPENDENT
+          key: 'cert.sha256_fingerprint'
+          delay: '0'
+          history: 90d
+          trends: '0'
+          value_type: CHAR
+          description: 'SHA-256 fingerprint of the certificate.'
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - '$.result[0].sha256_fingerprint'
+          master_item:
+            key: 'web.certificate.get[{$CERT.DOMAIN},{$CERT.PORT}]'
+          tags:
+            - tag: component
+              value: ssl
+      triggers:
+        - uuid: c5000000000000000000000000000001
+          expression: 'last(/ITS Connect - SSL Certificates/cert.expiry_days)<30 and last(/ITS Connect - SSL Certificates/cert.expiry_days)>=7'
+          name: 'SSL: Certificate expires in less than 30 days [{$CERT.DOMAIN}] ({ITEM.VALUE} days left)'
+          priority: WARNING
+          description: 'The SSL certificate will expire in less than 30 days. Renew it soon.'
+          tags:
+            - tag: scope
+              value: availability
+        - uuid: c5000000000000000000000000000002
+          expression: 'last(/ITS Connect - SSL Certificates/cert.expiry_days)<7 and last(/ITS Connect - SSL Certificates/cert.expiry_days)>=0'
+          name: 'SSL: Certificate expires in less than 7 days [{$CERT.DOMAIN}] ({ITEM.VALUE} days left)'
+          priority: HIGH
+          description: 'The SSL certificate will expire in less than 7 days. Immediate renewal required.'
+          dependencies:
+            - name: 'SSL: Certificate expires in less than 30 days [{$CERT.DOMAIN}] ({ITEM.VALUE} days left)'
+              expression: 'last(/ITS Connect - SSL Certificates/cert.expiry_days)<30 and last(/ITS Connect - SSL Certificates/cert.expiry_days)>=7'
+          tags:
+            - tag: scope
+              value: availability
+        - uuid: c5000000000000000000000000000003
+          expression: 'last(/ITS Connect - SSL Certificates/cert.expiry_days)<0'
+          name: 'SSL: Certificate has expired [{$CERT.DOMAIN}]'
+          priority: DISASTER
+          description: 'The SSL certificate has expired. HTTPS connections will fail.'
+          dependencies:
+            - name: 'SSL: Certificate expires in less than 7 days [{$CERT.DOMAIN}] ({ITEM.VALUE} days left)'
+              expression: 'last(/ITS Connect - SSL Certificates/cert.expiry_days)<7 and last(/ITS Connect - SSL Certificates/cert.expiry_days)>=0'
+          tags:
+            - tag: scope
+              value: availability
+        - uuid: c5000000000000000000000000000004
+          expression: 'nodata(/ITS Connect - SSL Certificates/cert.expiry_days,86400)=1'
+          name: 'SSL: Failed to check certificate [{$CERT.DOMAIN}] (no data for 24h)'
+          priority: AVERAGE
+          description: 'No certificate data received for 24 hours.'
+          tags:
+            - tag: scope
+              value: availability
+      macros:
+        - macro: '{$CERT.DOMAIN}'
+          value: ''
+          description: 'Domain to check SSL certificate for. Set on host level.'
+        - macro: '{$CERT.PORT}'
+          value: '443'
+          description: 'Port for TLS connection (default: 443).'
+      valuemaps:
+        - uuid: v5000000000000000000000000000001
+          name: 'Certificate validity'
+          mappings:
+            - value: '0'
+              newvalue: Invalid
+            - value: '1'
+              newvalue: Valid
+      tags:
+        - tag: class
+          value: security
+        - tag: target
+          value: ssl

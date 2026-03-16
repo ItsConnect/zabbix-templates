@@ -1,0 +1,232 @@
+zabbix_export:
+  version: '7.0'
+  template_groups:
+    - uuid: 846977d1dfed4968bc5f8bdb363285bc
+      name: 'Templates/ITS Connect'
+  templates:
+    - uuid: a1b2c3d4e5f6a1b2c3d4e5f6a1b20004
+      template: 'ITS Connect - Nginx'
+      name: 'ITS Connect - Nginx'
+      description: |
+        Monitors Nginx web server using the stub_status module.
+        Requires stub_status enabled on a local endpoint.
+        Maintained by ITS Connect - https://itsconnect.com.br
+      groups:
+        - name: 'Templates/ITS Connect'
+      items:
+        - uuid: b4000000000000000000000000000001
+          name: 'Nginx: Get stub status page'
+          type: ZABBIX_ACTIVE
+          key: 'web.page.get["{$NGINX.STUB_STATUS.HOST}","{$NGINX.STUB_STATUS.PATH}","{$NGINX.STUB_STATUS.PORT}"]'
+          delay: '30'
+          history: '0'
+          trends: '0'
+          value_type: TEXT
+          description: 'Raw output from the Nginx stub_status endpoint.'
+          tags:
+            - tag: component
+              value: raw
+        - uuid: b4000000000000000000000000000002
+          name: 'Nginx: Active connections'
+          type: DEPENDENT
+          key: 'nginx.connections.active'
+          delay: '0'
+          history: 7d
+          trends: 365d
+          value_type: UNSIGNED
+          description: 'Current number of active client connections including waiting.'
+          preprocessing:
+            - type: REGEX
+              parameters:
+                - 'Active connections: ([0-9]+)'
+                - '\1'
+          master_item:
+            key: 'web.page.get["{$NGINX.STUB_STATUS.HOST}","{$NGINX.STUB_STATUS.PATH}","{$NGINX.STUB_STATUS.PORT}"]'
+          tags:
+            - tag: component
+              value: nginx
+        - uuid: b4000000000000000000000000000003
+          name: 'Nginx: Accepted connections per second'
+          type: DEPENDENT
+          key: 'nginx.connections.accepted.rate'
+          delay: '0'
+          history: 7d
+          trends: 365d
+          value_type: FLOAT
+          description: 'Rate of accepted client connections per second.'
+          preprocessing:
+            - type: REGEX
+              parameters:
+                - 'server accepts handled requests\s+([0-9]+)'
+                - '\1'
+            - type: CHANGE_PER_SECOND
+              parameters:
+                - ''
+          master_item:
+            key: 'web.page.get["{$NGINX.STUB_STATUS.HOST}","{$NGINX.STUB_STATUS.PATH}","{$NGINX.STUB_STATUS.PORT}"]'
+          tags:
+            - tag: component
+              value: nginx
+        - uuid: b4000000000000000000000000000004
+          name: 'Nginx: Handled connections per second'
+          type: DEPENDENT
+          key: 'nginx.connections.handled.rate'
+          delay: '0'
+          history: 7d
+          trends: 365d
+          value_type: FLOAT
+          description: 'Rate of handled connections per second.'
+          preprocessing:
+            - type: REGEX
+              parameters:
+                - 'server accepts handled requests\s+[0-9]+ ([0-9]+)'
+                - '\1'
+            - type: CHANGE_PER_SECOND
+              parameters:
+                - ''
+          master_item:
+            key: 'web.page.get["{$NGINX.STUB_STATUS.HOST}","{$NGINX.STUB_STATUS.PATH}","{$NGINX.STUB_STATUS.PORT}"]'
+          tags:
+            - tag: component
+              value: nginx
+        - uuid: b4000000000000000000000000000005
+          name: 'Nginx: Requests per second'
+          type: DEPENDENT
+          key: 'nginx.requests.rate'
+          delay: '0'
+          history: 7d
+          trends: 365d
+          value_type: FLOAT
+          units: rps
+          description: 'Rate of client requests per second.'
+          preprocessing:
+            - type: REGEX
+              parameters:
+                - 'server accepts handled requests\s+[0-9]+ [0-9]+ ([0-9]+)'
+                - '\1'
+            - type: CHANGE_PER_SECOND
+              parameters:
+                - ''
+          master_item:
+            key: 'web.page.get["{$NGINX.STUB_STATUS.HOST}","{$NGINX.STUB_STATUS.PATH}","{$NGINX.STUB_STATUS.PORT}"]'
+          tags:
+            - tag: component
+              value: nginx
+        - uuid: b4000000000000000000000000000006
+          name: 'Nginx: Reading connections'
+          type: DEPENDENT
+          key: 'nginx.connections.reading'
+          delay: '0'
+          history: 7d
+          trends: 365d
+          value_type: UNSIGNED
+          description: 'Connections where Nginx is reading the request header.'
+          preprocessing:
+            - type: REGEX
+              parameters:
+                - 'Reading: ([0-9]+)'
+                - '\1'
+          master_item:
+            key: 'web.page.get["{$NGINX.STUB_STATUS.HOST}","{$NGINX.STUB_STATUS.PATH}","{$NGINX.STUB_STATUS.PORT}"]'
+          tags:
+            - tag: component
+              value: nginx
+        - uuid: b4000000000000000000000000000007
+          name: 'Nginx: Writing connections'
+          type: DEPENDENT
+          key: 'nginx.connections.writing'
+          delay: '0'
+          history: 7d
+          trends: 365d
+          value_type: UNSIGNED
+          description: 'Connections where Nginx is writing the response to the client.'
+          preprocessing:
+            - type: REGEX
+              parameters:
+                - 'Writing: ([0-9]+)'
+                - '\1'
+          master_item:
+            key: 'web.page.get["{$NGINX.STUB_STATUS.HOST}","{$NGINX.STUB_STATUS.PATH}","{$NGINX.STUB_STATUS.PORT}"]'
+          tags:
+            - tag: component
+              value: nginx
+        - uuid: b4000000000000000000000000000008
+          name: 'Nginx: Waiting connections'
+          type: DEPENDENT
+          key: 'nginx.connections.waiting'
+          delay: '0'
+          history: 7d
+          trends: 365d
+          value_type: UNSIGNED
+          description: 'Idle client connections waiting for a request (keep-alive).'
+          preprocessing:
+            - type: REGEX
+              parameters:
+                - 'Waiting: ([0-9]+)'
+                - '\1'
+          master_item:
+            key: 'web.page.get["{$NGINX.STUB_STATUS.HOST}","{$NGINX.STUB_STATUS.PATH}","{$NGINX.STUB_STATUS.PORT}"]'
+          tags:
+            - tag: component
+              value: nginx
+        - uuid: b4000000000000000000000000000009
+          name: 'Nginx: Dropped connections per second'
+          type: CALCULATED
+          key: 'nginx.connections.dropped.rate'
+          delay: '60'
+          history: 7d
+          trends: 365d
+          value_type: FLOAT
+          params: 'last(//nginx.connections.accepted.rate)-last(//nginx.connections.handled.rate)'
+          description: 'Rate of dropped connections (accepted minus handled).'
+          tags:
+            - tag: component
+              value: nginx
+      triggers:
+        - uuid: c4000000000000000000000000000001
+          expression: 'max(/ITS Connect - Nginx/nginx.connections.active,5m)=0'
+          name: 'Nginx: No active connections for 5 minutes'
+          priority: HIGH
+          description: 'Zero active connections for 5 minutes. Nginx may be down.'
+          tags:
+            - tag: scope
+              value: availability
+        - uuid: c4000000000000000000000000000002
+          expression: 'min(/ITS Connect - Nginx/nginx.requests.rate,5m)>1000'
+          name: 'Nginx: High request rate (>{ITEM.VALUE} rps)'
+          priority: WARNING
+          description: 'Request rate has exceeded 1000 rps for 5 minutes.'
+          tags:
+            - tag: scope
+              value: performance
+        - uuid: c4000000000000000000000000000003
+          expression: 'min(/ITS Connect - Nginx/nginx.connections.dropped.rate,5m)>0'
+          name: 'Nginx: Connections are being dropped'
+          priority: AVERAGE
+          description: 'Nginx is dropping connections. Check worker_connections limit.'
+          tags:
+            - tag: scope
+              value: performance
+        - uuid: c4000000000000000000000000000004
+          expression: 'nodata(/ITS Connect - Nginx/nginx.connections.active,600)=1'
+          name: 'Nginx: Failed to fetch status page (no data for 10m)'
+          priority: HIGH
+          description: 'The stub_status page has not returned data for 10 minutes.'
+          tags:
+            - tag: scope
+              value: availability
+      macros:
+        - macro: '{$NGINX.STUB_STATUS.HOST}'
+          value: '127.0.0.1'
+          description: 'Hostname or IP of the Nginx stub_status endpoint.'
+        - macro: '{$NGINX.STUB_STATUS.PATH}'
+          value: '/nginx_status'
+          description: 'Path to the Nginx stub_status endpoint.'
+        - macro: '{$NGINX.STUB_STATUS.PORT}'
+          value: '8081'
+          description: 'Port of the Nginx stub_status endpoint.'
+      tags:
+        - tag: class
+          value: web
+        - tag: target
+          value: nginx

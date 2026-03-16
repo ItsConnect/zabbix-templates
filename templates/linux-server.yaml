@@ -1,0 +1,284 @@
+zabbix_export:
+  version: '7.0'
+  template_groups:
+    - uuid: 846977d1dfed4968bc5f8bdb363285bc
+      name: 'Templates/ITS Connect'
+  templates:
+    - uuid: a1b2c3d4e5f6a1b2c3d4e5f6a1b20001
+      template: 'ITS Connect - Linux Server'
+      name: 'ITS Connect - Linux Server'
+      description: |
+        Monitors core Linux server metrics including CPU, RAM, disk,
+        network traffic, system uptime and load average.
+        Requires Zabbix Agent 2.
+        Maintained by ITS Connect - https://itsconnect.com.br
+      groups:
+        - name: 'Templates/ITS Connect'
+      items:
+        - uuid: b1000000000000000000000000000001
+          name: 'CPU utilization'
+          type: ZABBIX_ACTIVE
+          key: 'system.cpu.util[,idle]'
+          delay: '60'
+          history: 7d
+          trends: 365d
+          value_type: FLOAT
+          units: '%'
+          description: 'CPU idle percentage. Utilization is calculated as (100 - idle).'
+          preprocessing:
+            - type: JAVASCRIPT
+              parameters:
+                - 'return (100 - value).toFixed(2);'
+          tags:
+            - tag: component
+              value: cpu
+        - uuid: b1000000000000000000000000000002
+          name: 'Memory utilization'
+          type: ZABBIX_ACTIVE
+          key: 'vm.memory.utilization'
+          delay: '60'
+          history: 7d
+          trends: 365d
+          value_type: FLOAT
+          units: '%'
+          description: 'Percentage of total RAM currently in use.'
+          tags:
+            - tag: component
+              value: memory
+        - uuid: b1000000000000000000000000000003
+          name: 'Memory available'
+          type: ZABBIX_ACTIVE
+          key: 'vm.memory.size[available]'
+          delay: '60'
+          history: 7d
+          trends: 365d
+          value_type: UNSIGNED
+          units: B
+          description: 'Available memory in bytes.'
+          tags:
+            - tag: component
+              value: memory
+        - uuid: b1000000000000000000000000000004
+          name: 'Memory total'
+          type: ZABBIX_ACTIVE
+          key: 'vm.memory.size[total]'
+          delay: '3600'
+          history: 7d
+          trends: 365d
+          value_type: UNSIGNED
+          units: B
+          description: 'Total physical memory in bytes.'
+          tags:
+            - tag: component
+              value: memory
+        - uuid: b1000000000000000000000000000005
+          name: 'Disk space utilization /'
+          type: ZABBIX_ACTIVE
+          key: 'vfs.fs.size[/,pused]'
+          delay: '300'
+          history: 7d
+          trends: 365d
+          value_type: FLOAT
+          units: '%'
+          description: 'Percentage of disk space used on the root filesystem.'
+          tags:
+            - tag: component
+              value: disk
+        - uuid: b1000000000000000000000000000006
+          name: 'Disk space free /'
+          type: ZABBIX_ACTIVE
+          key: 'vfs.fs.size[/,free]'
+          delay: '300'
+          history: 7d
+          trends: 365d
+          value_type: UNSIGNED
+          units: B
+          description: 'Free disk space on the root filesystem in bytes.'
+          tags:
+            - tag: component
+              value: disk
+        - uuid: b1000000000000000000000000000007
+          name: 'Network incoming traffic (eth0)'
+          type: ZABBIX_ACTIVE
+          key: 'net.if.in[eth0]'
+          delay: '60'
+          history: 7d
+          trends: 365d
+          value_type: UNSIGNED
+          units: bps
+          description: 'Incoming network traffic on eth0.'
+          preprocessing:
+            - type: CHANGE_PER_SECOND
+              parameters:
+                - ''
+            - type: MULTIPLIER
+              parameters:
+                - '8'
+          tags:
+            - tag: component
+              value: network
+        - uuid: b1000000000000000000000000000008
+          name: 'Network outgoing traffic (eth0)'
+          type: ZABBIX_ACTIVE
+          key: 'net.if.out[eth0]'
+          delay: '60'
+          history: 7d
+          trends: 365d
+          value_type: UNSIGNED
+          units: bps
+          description: 'Outgoing network traffic on eth0.'
+          preprocessing:
+            - type: CHANGE_PER_SECOND
+              parameters:
+                - ''
+            - type: MULTIPLIER
+              parameters:
+                - '8'
+          tags:
+            - tag: component
+              value: network
+        - uuid: b1000000000000000000000000000009
+          name: 'System uptime'
+          type: ZABBIX_ACTIVE
+          key: 'system.uptime'
+          delay: '300'
+          history: 7d
+          trends: 365d
+          value_type: UNSIGNED
+          units: uptime
+          description: 'System uptime in seconds.'
+          tags:
+            - tag: component
+              value: system
+        - uuid: b100000000000000000000000000000a
+          name: 'Load average (1 min)'
+          type: ZABBIX_ACTIVE
+          key: 'system.cpu.load[all,avg1]'
+          delay: '60'
+          history: 7d
+          trends: 365d
+          value_type: FLOAT
+          description: '1-minute load average.'
+          tags:
+            - tag: component
+              value: cpu
+        - uuid: b100000000000000000000000000000b
+          name: 'Load average (5 min)'
+          type: ZABBIX_ACTIVE
+          key: 'system.cpu.load[all,avg5]'
+          delay: '60'
+          history: 7d
+          trends: 365d
+          value_type: FLOAT
+          description: '5-minute load average.'
+          tags:
+            - tag: component
+              value: cpu
+        - uuid: b100000000000000000000000000000c
+          name: 'Load average (15 min)'
+          type: ZABBIX_ACTIVE
+          key: 'system.cpu.load[all,avg15]'
+          delay: '60'
+          history: 7d
+          trends: 365d
+          value_type: FLOAT
+          description: '15-minute load average.'
+          tags:
+            - tag: component
+              value: cpu
+        - uuid: b100000000000000000000000000000d
+          name: 'Number of CPUs'
+          type: ZABBIX_ACTIVE
+          key: 'system.cpu.num'
+          delay: '3600'
+          history: 7d
+          trends: 365d
+          value_type: UNSIGNED
+          description: 'Number of CPUs/cores available.'
+          tags:
+            - tag: component
+              value: cpu
+        - uuid: b100000000000000000000000000000e
+          name: 'System hostname'
+          type: ZABBIX_ACTIVE
+          key: 'system.hostname'
+          delay: '3600'
+          history: 7d
+          trends: '0'
+          value_type: CHAR
+          description: 'System hostname.'
+          tags:
+            - tag: component
+              value: system
+        - uuid: b100000000000000000000000000000f
+          name: 'Swap space utilization'
+          type: ZABBIX_ACTIVE
+          key: 'system.swap.size[,pused]'
+          delay: '300'
+          history: 7d
+          trends: 365d
+          value_type: FLOAT
+          units: '%'
+          description: 'Percentage of swap space in use.'
+          tags:
+            - tag: component
+              value: memory
+      triggers:
+        - uuid: c1000000000000000000000000000001
+          expression: 'min(/ITS Connect - Linux Server/system.cpu.util[,idle],5m)>90'
+          name: 'CPU usage is critically high (>{ITEM.VALUE}%)'
+          priority: HIGH
+          description: 'CPU utilization has exceeded 90% for the last 5 minutes.'
+          tags:
+            - tag: scope
+              value: performance
+        - uuid: c1000000000000000000000000000002
+          expression: 'last(/ITS Connect - Linux Server/vm.memory.utilization)>90'
+          name: 'Memory usage is critically high (>{ITEM.VALUE}%)'
+          priority: HIGH
+          description: 'Less than 10% of RAM is free.'
+          tags:
+            - tag: scope
+              value: performance
+        - uuid: c1000000000000000000000000000003
+          expression: 'last(/ITS Connect - Linux Server/vfs.fs.size[/,pused])>85'
+          name: 'Disk space is critically low on / (>{ITEM.VALUE}% used)'
+          priority: HIGH
+          description: 'Less than 15% free disk space on the root filesystem.'
+          tags:
+            - tag: scope
+              value: capacity
+        - uuid: c1000000000000000000000000000004
+          expression: 'last(/ITS Connect - Linux Server/system.uptime)<600'
+          name: 'Server has been restarted (uptime < 10m)'
+          priority: WARNING
+          description: 'Server uptime is less than 10 minutes, indicating a recent restart.'
+          manual_close: 'YES'
+          tags:
+            - tag: scope
+              value: availability
+        - uuid: c1000000000000000000000000000005
+          expression: 'min(/ITS Connect - Linux Server/system.cpu.load[all,avg5],5m)>{$CPU_LOAD_WARN}'
+          name: 'Load average is too high'
+          priority: AVERAGE
+          description: 'The 5-minute load average has exceeded the threshold.'
+          tags:
+            - tag: scope
+              value: performance
+        - uuid: c1000000000000000000000000000006
+          expression: 'last(/ITS Connect - Linux Server/system.swap.size[,pused])>80'
+          name: 'High swap usage (>{ITEM.VALUE}%)'
+          priority: WARNING
+          description: 'More than 80% of swap space is in use.'
+          tags:
+            - tag: scope
+              value: performance
+      macros:
+        - macro: '{$CPU_LOAD_WARN}'
+          value: '4'
+          description: 'Load average warning threshold (default: 4).'
+      tags:
+        - tag: class
+          value: os
+        - tag: target
+          value: linux
